@@ -1,5 +1,7 @@
 import sys
 import platform
+import typing
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
 from PySide6.QtGui import (QColor, QFont)
@@ -7,14 +9,15 @@ from PySide6.QtWidgets import *
 
 import os.path
 
+from tools.Signal import Signal as RFSignal
+from tools.SignalLibrary import SignalLibrary
 from .ressources import style, files
 files.qInitResources()
 
 from .base import Ui_MainWindow
 
-
 class MainWindow(QMainWindow):
-	def __init__(self):
+	def __init__(self, signal_libraries: typing.List[SignalLibrary]):
 		QMainWindow.__init__(self)
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
@@ -24,6 +27,9 @@ class MainWindow(QMainWindow):
 			{"title": "Add device", "btn_id": "btn_add_device", "btn_icon": "url(:/16x16/icons/16x16/cil-plus.png)",  "page": self.ui.page_add_device},
 			{"title": "Scanner",    "btn_id": "btn_widgets",    "btn_icon": "url(:/16x16/icons/16x16/cil-chart.png)", "page": self.ui.page_scanner},
 		]
+
+		self.signal_libraries = signal_libraries
+		self.signal_libraries.append("Custom")
 
 		print('System: ' + platform.system())
 		print('Version: ' + platform.release())
@@ -77,6 +83,20 @@ class MainWindow(QMainWindow):
 		self.sizegrip.setStyleSheet("width: 20px; height: 20px; margin 0px; padding: 0px;")
 
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+		self.ui.comboBoxAddDeviceType.clear()
+		for signal_library in self.signal_libraries:
+			if signal_library == "Custom":
+				self.ui.comboBoxAddDeviceType.addItem("Custom")
+			else:
+				self.ui.comboBoxAddDeviceType.addItem(signal_library.NAME)
+		self.ui.comboBoxAddDeviceType.currentTextChanged.connect(self.add_device_comboBox_type_select)
+		self.ui.comboBox_addDevice_selector_category.currentTextChanged.connect(self.add_device_comboBox_selector_category)
+		self.ui.comboBox_addDevice_selector_signal.currentTextChanged.connect(self.add_device_comboBox_selector_signal)
+		self.ui.pushButton_addDevice_save.clicked.connect(self.add_device_button_save)
+
+		self.ui.stackedWidget.setCurrentWidget(self.ui.page_addDevice_custom)
+
 		self.show()
 
 	def toggle_menu(self, maxWidth):
@@ -91,7 +111,6 @@ class MainWindow(QMainWindow):
 		self.animation.setEndValue(widthExtended)
 		self.animation.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
 		self.animation.start()
-
 
 	def maximize_restore(self):
 		if not self.isMaximized():
@@ -146,13 +165,93 @@ class MainWindow(QMainWindow):
 	def mousePressEvent(self, event):
 		self.dragPos = event.globalPos()
 
+	def add_device_comboBox_type_select(self, value):
+		if value == "Custom":
+			self.ui.stackedWidget_Add_Device.setCurrentWidget(self.ui.page_addDevice_custom)
+		else:
+			self.ui.stackedWidget_Add_Device.setCurrentWidget(self.ui.page_addDevice_selector)
+			library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == value][0]
+			self.ui.comboBox_addDevice_selector_category.clear()
+			self.ui.comboBox_addDevice_selector_signal.clear()
+
+			cats = library.get_categories()
+			self.ui.comboBox_addDevice_selector_category.addItems(cats)
+
+	def add_device_comboBox_selector_category(self, value):
+		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
+		if len(library) > 0:
+			library = library[0]
+
+			signals = library.get_signals_in_category(value)
+			self.ui.comboBox_addDevice_selector_signal.clear()
+			self.ui.comboBox_addDevice_selector_signal.addItems([sig.human_id for sig in signals])
+		else:
+			print("Could find library")
+
+	def add_device_comboBox_selector_signal(self, value):
+		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
+		if len(library) > 0:
+			library = library[0]
+
+			signals = library.get_signals_in_category(self.ui.comboBox_addDevice_selector_category.currentText())
+			signal = [s for s in signals if s.human_id == value]
+			if len(signal) > 0:
+				signal = signal[0]
+				self.ui.label_addDevice_selector_frequency.setText(signal.human_frequency)
+				self.ui.label_addDevice_selector_bandwidth.setText(signal.human_bandwidth)
+			else:
+				print("Could find signal")
+		else:
+			print("Could find library")
+
+	def add_device_button_save(self):
+		new_signal = None
+
+		if self.ui.lineEdit_addDevice_name.text() != "":
+			if self.ui.comboBoxAddDeviceType.currentText() == "Custom":
+				new_signal = RFSignal(
+					self.ui.lineEdit_addDevice_name.text(),
+					self.ui.doubleSpinBox_addDevice_custom_frequency.value(),
+					self.ui.doubleSpinBox_addDevice_custom_bandwidth.value(),
+				)
+			else:
+				library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
+				if len(library) > 0:
+					library = library[0]
+
+					signals = library.get_signals_in_category(self.ui.comboBox_addDevice_selector_category.currentText())
+					signal = [s for s in signals if s.human_id == self.ui.comboBox_addDevice_selector_signal.currentText()]
+					if len(signal) > 0:
+						signal = signal[0]
+						self.ui.label_addDevice_selector_frequency.setText(signal.human_frequency)
+						self.ui.label_addDevice_selector_bandwidth.setText(signal.human_bandwidth)
+
+						new_signal = RFSignal(
+							self.ui.lineEdit_addDevice_name.text(),
+							signal.frequency,
+							signal.bandwidth,
+							parent=signal
+						)
+					else:
+						print("Could find signal")
+				else:
+					print("Could find library")
+		else:
+			print("Empty name")
+
+		if new_signal:
+			self.ui.lineEdit_addDevice_name.setText("")
+			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
+			self.select_menu("btn_widgets")
+			print(f"Created: %r" % new_signal)
+
 
 class Gui:
-	def __init__(self):
+	def __init__(self, signal_libraries: typing.List[SignalLibrary]):
 		self.app = QApplication(sys.argv)
 		QtGui.QFontDatabase.addApplicationFont(os.path.dirname(__file__)+"\\ressources\\fonts\\segoeui.ttf")
 		QtGui.QFontDatabase.addApplicationFont(os.path.dirname(__file__)+"\\ressources\\fonts\\segoeuib.ttf")
-		self.window = MainWindow()
+		self.window = MainWindow( signal_libraries)
 
 	def run(self):
 		sys.exit(self.app.exec())
