@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
 		self.ui.comboBox_addDevice_demodulation.addItems([x.name.capitalize() for x in list(DemodulationType)])
 		self.add_device_comboBox_demodulation("Off")
 
-		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x)+""))
+		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x)+"dBm"))
 		self.ui.horizontalSlider_addDevice_volumeThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_volumeThreshold.setText(str(x)+"%"))
 		self.show()
 
@@ -236,8 +236,8 @@ class MainWindow(QMainWindow):
 			if self.ui.comboBoxAddDeviceType.currentText() == "Custom":
 				new_signal = RFSignal(
 					self.ui.lineEdit_addDevice_name.text(),
-					self.ui.doubleSpinBox_addDevice_custom_frequency.value(),
-					self.ui.doubleSpinBox_addDevice_custom_bandwidth.value(),
+					self.ui.doubleSpinBox_addDevice_custom_frequency.value()*1e6,
+					self.ui.doubleSpinBox_addDevice_custom_bandwidth.value()*1e3,
 					demodulation=demod,
 					threshold_signal=self.ui.horizontalSlider_addDevice_signalPresentThreshold.value(),
 					threshold_volume=None if demod == DemodulationType.OFF else self.ui.horizontalSlider_addDevice_volumeThreshold.value(),
@@ -325,4 +325,4 @@ class Gui:
 		self.window = MainWindow(signal_libraries, signal_manager)
 
 	def run(self):
-		sys.exit(self.app.exec())
+		self.app.exec()

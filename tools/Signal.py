@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 from si_prefix import si_format
 
@@ -23,9 +24,12 @@ class Signal:
 		self.parent = parent
 		self.state = SignalState.UNKNOWN
 
+		self.last_measured_power = None
+		self.last_measured_power_time = None
+
 	@property
 	def human_id(self):
-		return "%s" % (self.name)
+		return "%s" % self.name
 
 	@property
 	def human_frequency(self):
@@ -38,6 +42,16 @@ class Signal:
 	@property
 	def has_parent(self):
 		return self.parent is not None
+
+	def set_present(self, present):
+		if present:
+			self.state = SignalState.NORMAL
+		else:
+			self.state = SignalState.ABSENT
+
+	def set_last_measured_power(self, power):
+		self.last_measured_power = power
+		self.last_measured_power_time = time.time()
 
 	def __repr__(self):
 		return f"<Signal \"%s\" freq=%s bw=%s state=%s demod=%r thresh_volume=%r thresh_signal=%r%s>" % (

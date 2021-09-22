@@ -1,4 +1,7 @@
-# from sdr.RtlSDR import RtlSDR
+import threading
+
+from sdr.BackgroundSdrThread import BackgroundSdrThread
+from sdr.RtlSDR import RtlSDR
 from gui.gui import Gui
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal
@@ -24,11 +27,19 @@ libA.signals = {
 signal_libraries = [libA]
 signals_manager = SignalManager()
 
+sdr = RtlSDR(debug=False)
+
+sdrWorkerThread = BackgroundSdrThread(sdr, signals_manager)
+sdrWorkerThread.start()
+
 gui = Gui(signal_libraries, signals_manager)
 gui.run()
-#
+
+sdrWorkerThread.quit()
+sdrWorkerThread.join()
+
 # sdr = RtlSDR(debug=False)
-# 
+#
 # # Tests
 # # print(sdr.check_frequency(95.5e6, bandwidth=12.5e3, min_power=-35, enable_de_emphasis=False))
 #

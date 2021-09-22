@@ -1,4 +1,6 @@
-from . import Signal
+import typing
+
+from .Signal import Signal
 
 
 class SignalManager:
@@ -17,6 +19,6 @@ class SignalManager:
 			return True
 		return False
 
-	def get_signals(self):
+	def get_signals(self) -> typing.List[Signal]:
 		return self.signals
 

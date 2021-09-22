@@ -30,7 +30,7 @@ class QSignalStatusWidget(QLabel):
             colorA = QColor(70, 70, 70)
             colorB = QColor(100, 100, 100)
         if self.signal.state == SignalState.NORMAL:
-            colorA = colorB = QColor(0, 255, 0)
+            colorA = colorB = QColor(87, 181, 54)
 
         self.setBackColor(colorA)
 
@@ -40,16 +40,20 @@ class QSignalStatusWidget(QLabel):
         self.color_anim.setLoopCount(-1)
         self.color_anim.start()
 
-        self.setText(str(self.signal.state))
+    def my_update(self):
+        if self.signal.last_measured_power is not None:
+            self.setText(str(round(self.signal.last_measured_power,2))+" dBm")
+
+        if self.signal.state != self.old_state:
+            self.old_state = self.signal.state
+            self.updateStatus()
 
     def getBackColor(self):
         return self.palette().color(QtGui.QPalette.Window)
 
     def setBackColor(self, color):
+        self.my_update()
         self.setStyleSheet("* { background: rgb(%d,%d,%d) }" % (color.red(), color.green(), color.blue()))
 
-        if self.signal.state != self.old_state:
-            self.old_state = self.signal.state
-            self.updateStatus()
 
     backColor = QtCore.Property(QtGui.QColor, getBackColor, setBackColor)
