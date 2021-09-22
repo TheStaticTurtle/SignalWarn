@@ -2009,10 +2009,10 @@ border-radius: 5px;
                                 <item>
                                  <widget class="QSlider" name="horizontalSlider_addDevice_volumeThreshold">
                                   <property name="maximum">
-                                   <number>100</number>
+                                   <number>50</number>
                                   </property>
                                   <property name="value">
-                                   <number>10</number>
+                                   <number>5</number>
                                   </property>
                                   <property name="orientation">
                                    <enum>Qt::Horizontal</enum>
@@ -2028,7 +2028,7 @@ border-radius: 5px;
                                    </size>
                                   </property>
                                   <property name="text">
-                                   <string>10%</string>
+                                   <string>5vol</string>
                                   </property>
                                  </widget>
                                 </item>

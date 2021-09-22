@@ -24,6 +24,8 @@ class Signal:
 		self.parent = parent
 		self.state = SignalState.UNKNOWN
 
+		self.is_been_checked = False
+
 		self.last_measured_power = None
 		self.last_measured_power_time = None
 		self.last_measured_loudness = None

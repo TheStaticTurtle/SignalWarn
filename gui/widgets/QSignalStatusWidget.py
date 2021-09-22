@@ -10,6 +10,7 @@ from tools.Signal import Signal
 class QSignalStatusWidget(QLabel):
     def __init__(self, signal: Signal, *args, **kwargs):
         super(QSignalStatusWidget, self).__init__(*args, **kwargs)
+        self.setText("   ")
         self.signal = signal
         self.old_state = None
 

@@ -17,6 +17,7 @@ class BackgroundSdrThread(threading.Thread):
 	def run(self):
 		while self.running:
 			for signal in self.signals_manager.get_signals():
+				signal.is_been_checked = True
 				present, power, audio_present, audio_loudness = self.sdr.check_frequency(
 					signal.frequency,
 					bandwidth=signal.bandwidth,
@@ -28,4 +29,4 @@ class BackgroundSdrThread(threading.Thread):
 				signal.set_last_measured_power(power)
 				signal.set_last_measured_audio_loudness(audio_loudness)
 				signal.set_present(present, audio_present)
-				pass
+				signal.is_been_checked = False

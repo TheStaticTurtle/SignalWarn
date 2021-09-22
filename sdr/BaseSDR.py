@@ -69,14 +69,12 @@ class BaseSDR:
 		if self.debug:
 			self._plot_spectrogram(samples, sample_rate, frequency, "Base signal")
 		return samples, sample_rate
-
 	def _process_signal_recenter(self, frequency, samples, sample_rate):
 		fc1 = np.exp(-1.0j * 2.0 * np.pi * -self._capture_offset / sample_rate * np.arange(len(samples)))
 		samples_offset = samples * fc1
 		if self.debug:
 			self._plot_spectrogram(samples_offset, sample_rate, frequency, "Offset-ed")
 		return samples_offset, sample_rate
-
 	def _process_signal_decimate(self, frequency, samples, sample_rate, filter_bw):
 		dec_rate = int(sample_rate / filter_bw)
 		samples_decimated = signal.decimate(samples, dec_rate)
@@ -87,7 +85,6 @@ class BaseSDR:
 			self._plot_spectrogram(samples_decimated, sample_rate, frequency, "Decimated")
 
 		return samples_decimated, sample_rate
-
 	def _process_signal_de_emphasis(self, frequency, samples, sample_rate):
 		# The de-emphasis filter
 		# Given a signal 'x5' (in a numpy array) with sampling rate Fs_y
@@ -102,7 +99,6 @@ class BaseSDR:
 
 		return samples_de_emphasis, sample_rate
 
-
 	def _analyse_signal_get_power(self, samples, sample_rate):
 		if self.debug:
 			self._plot_npfft(samples, sample_rate, "Power analysis")
@@ -115,7 +111,6 @@ class BaseSDR:
 		self._demodulate_fm(103e3, samples, sample_rate)
 
 		return avg_pwr
-
 
 	def _demodulate_fm(self, frequency, samples, sample_rate):
 		samples_decimated, sample_rate_decimated = self._process_signal_decimate(frequency, samples, sample_rate, 100e3)
