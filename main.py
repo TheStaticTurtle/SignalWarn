@@ -2,6 +2,7 @@
 from gui.gui import Gui
 from tools.Signal import Signal
 from tools.SignalLibrary import SignalLibrary
+from tools.SignalManager import SignalManager
 
 libA = SignalLibrary()
 libA.signals = {
@@ -20,8 +21,9 @@ libA.signals = {
 }
 
 signal_libraries = [libA]
+signals_manager = SignalManager()
 
-gui = Gui(signal_libraries)
+gui = Gui(signal_libraries, signals_manager)
 gui.run()
 #
 # sdr = RtlSDR(debug=False)

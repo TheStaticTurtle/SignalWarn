@@ -4,20 +4,21 @@ import typing
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
-from PySide6.QtGui import (QColor, QFont)
+from PySide6.QtGui import (QColor, QFont, QBrush)
 from PySide6.QtWidgets import *
 
 import os.path
 
 from tools.Signal import Signal as RFSignal
 from tools.SignalLibrary import SignalLibrary
+from tools.SignalManager import SignalManager
 from .ressources import style, files
 files.qInitResources()
 
 from .base import Ui_MainWindow
 
 class MainWindow(QMainWindow):
-	def __init__(self, signal_libraries: typing.List[SignalLibrary]):
+	def __init__(self, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
 		QMainWindow.__init__(self)
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
@@ -28,6 +29,7 @@ class MainWindow(QMainWindow):
 			{"title": "Scanner",    "btn_id": "btn_widgets",    "btn_icon": "url(:/16x16/icons/16x16/cil-chart.png)", "page": self.ui.page_scanner},
 		]
 
+		self.signal_manager = signal_manager
 		self.signal_libraries = signal_libraries
 		self.signal_libraries.append("Custom")
 
@@ -150,6 +152,8 @@ class MainWindow(QMainWindow):
 		btnWidget = self.sender()
 		for menu in self.menus:
 			if menu["btn_id"] == btnWidget.objectName():
+				if menu["btn_id"] == "btn_widgets":
+					self.scanner_update_table()
 				self.ui.stackedWidget.setCurrentWidget(menu["page"])
 				self.select_menu(menu["btn_id"])
 
@@ -240,18 +244,60 @@ class MainWindow(QMainWindow):
 			print("Empty name")
 
 		if new_signal:
+			self.signal_manager.add_signal(new_signal)
+			self.scanner_update_table()
 			self.ui.lineEdit_addDevice_name.setText("")
 			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
 			self.select_menu("btn_widgets")
 			print(f"Created: %r" % new_signal)
 
+	def scanner_update_table(self):
+		data = {
+			"Status": [],
+			"Name": [],
+			"Freq @ Bw": [],
+			"Comment": [],
+		}
+
+		self.ui.tableWidget.clear()
+
+		self.ui.tableWidget.setHorizontalHeaderLabels(["Status", "Name", "Freq @ Bw", "Comment", "Actions"])
+		self.ui.tableWidget.setColumnCount(5)
+		self.ui.tableWidget.horizontalHeader().setVisible(True)
+		for y, signal in enumerate(self.signal_manager.get_signals()):
+			k = QTableWidgetItem(str(signal.state))
+			self.ui.tableWidget.setItem(y, 0, k)
+			self.ui.tableWidget.item(y, 0).setBackground(QColor(255,0,0))
+
+			self.ui.tableWidget.setItem(y, 1, QTableWidgetItem(signal.name))
+			self.ui.tableWidget.setItem(y, 2, QTableWidgetItem(signal.human_frequency+" @ "+signal.human_bandwidth))
+			self.ui.tableWidget.setItem(y, 3, QTableWidgetItem(signal.parent.name if signal.has_parent else "-"))
+
+			pWidget = QWidget()
+			btn_delete = QPushButton()
+			btn_delete.setText("Delete")
+			pLayout = QHBoxLayout(pWidget)
+			pLayout.addWidget(btn_delete)
+			# pLayout.setAlignment(QtGui.)
+			pLayout.setContentsMargins(0, 0, 0, 0)
+			pWidget.setLayout(pLayout)
+
+			btn_delete.clicked.connect(lambda: self.scanner_delete_signal_callback(signal))
+			self.ui.tableWidget.setCellWidget(y, 4, pWidget)
+
+		self.ui.tableWidget.resizeColumnsToContents()
+		self.ui.tableWidget.resizeRowsToContents()
+
+	def scanner_delete_signal_callback(self, signal):
+		self.signal_manager.remove_signal(signal)
+		self.scanner_update_table()
 
 class Gui:
-	def __init__(self, signal_libraries: typing.List[SignalLibrary]):
+	def __init__(self, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
 		self.app = QApplication(sys.argv)
 		QtGui.QFontDatabase.addApplicationFont(os.path.dirname(__file__)+"\\ressources\\fonts\\segoeui.ttf")
 		QtGui.QFontDatabase.addApplicationFont(os.path.dirname(__file__)+"\\ressources\\fonts\\segoeuib.ttf")
-		self.window = MainWindow( signal_libraries)
+		self.window = MainWindow(signal_libraries, signal_manager)
 
 	def run(self):
 		sys.exit(self.app.exec())
