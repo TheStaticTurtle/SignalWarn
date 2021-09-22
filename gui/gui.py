@@ -2,13 +2,14 @@ import sys
 import platform
 import typing
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets, QtUiTools
 from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
 from PySide6.QtGui import (QColor, QFont, QBrush)
 from PySide6.QtWidgets import *
 
 import os.path
 
+from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
@@ -101,6 +102,12 @@ class MainWindow(QMainWindow):
 
 		self.ui.stackedWidget.setCurrentWidget(self.ui.page_addDevice_custom)
 
+		self.ui.comboBox_addDevice_demodulation.currentTextChanged.connect(self.add_device_comboBox_demodulation)
+		self.ui.comboBox_addDevice_demodulation.addItems([x.name.capitalize() for x in list(DemodulationType)])
+		self.add_device_comboBox_demodulation("Off")
+
+		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x)+""))
+		self.ui.horizontalSlider_addDevice_volumeThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_volumeThreshold.setText(str(x)+"%"))
 		self.show()
 
 	def toggle_menu(self, maxWidth):
@@ -115,7 +122,6 @@ class MainWindow(QMainWindow):
 		self.animation.setEndValue(widthExtended)
 		self.animation.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
 		self.animation.start()
-
 	def maximize_restore(self):
 		if not self.isMaximized():
 			self.showMaximized()
@@ -149,7 +155,6 @@ class MainWindow(QMainWindow):
 		button.setToolTip(name)
 		button.clicked.connect(self.menu_buttons_callback)
 		self.ui.layout_menus.addWidget(button)
-
 	def menu_buttons_callback(self):
 		btnWidget = self.sender()
 		for menu in self.menus:
@@ -158,7 +163,6 @@ class MainWindow(QMainWindow):
 					self.scanner_update_table()
 				self.ui.stackedWidget.setCurrentWidget(menu["page"])
 				self.select_menu(menu["btn_id"])
-
 	def select_menu(self, widget):
 		for w in self.ui.frame_left_menu.findChildren(QPushButton):
 			style = w.styleSheet()
@@ -182,7 +186,6 @@ class MainWindow(QMainWindow):
 
 			cats = library.get_categories()
 			self.ui.comboBox_addDevice_selector_category.addItems(cats)
-
 	def add_device_comboBox_selector_category(self, value):
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
@@ -193,7 +196,6 @@ class MainWindow(QMainWindow):
 			self.ui.comboBox_addDevice_selector_signal.addItems([sig.human_id for sig in signals])
 		else:
 			print("Could find library")
-
 	def add_device_comboBox_selector_signal(self, value):
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
@@ -205,20 +207,40 @@ class MainWindow(QMainWindow):
 				signal = signal[0]
 				self.ui.label_addDevice_selector_frequency.setText(signal.human_frequency)
 				self.ui.label_addDevice_selector_bandwidth.setText(signal.human_bandwidth)
+
+				if signal.demodulation is not None:
+					index = self.ui.comboBox_addDevice_demodulation.findText(signal.demodulation.name.capitalize(), QtCore.Qt.MatchFixedString)
+					if index >= 0:
+						self.ui.comboBox_addDevice_demodulation.setCurrentIndex(index)
 			else:
 				print("Could find signal")
 		else:
 			print("Could find library")
 
+	def add_device_comboBox_demodulation(self, value):
+		if value == "Off":
+			self.ui.label_addDevice_volumeThreshold_title.setVisible(False)
+			self.ui.label_addDevice_volumeThreshold.setVisible(False)
+			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(False)
+		else:
+			self.ui.label_addDevice_volumeThreshold_title.setVisible(True)
+			self.ui.label_addDevice_volumeThreshold.setVisible(True)
+			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(True)
+
 	def add_device_button_save(self):
 		new_signal = None
 
 		if self.ui.lineEdit_addDevice_name.text() != "":
+			demod = [x for x in list(DemodulationType) if x.name.capitalize() == self.ui.comboBox_addDevice_demodulation.currentText()][0]
+
 			if self.ui.comboBoxAddDeviceType.currentText() == "Custom":
 				new_signal = RFSignal(
 					self.ui.lineEdit_addDevice_name.text(),
 					self.ui.doubleSpinBox_addDevice_custom_frequency.value(),
 					self.ui.doubleSpinBox_addDevice_custom_bandwidth.value(),
+					demodulation=demod,
+					threshold_signal=self.ui.horizontalSlider_addDevice_signalPresentThreshold.value(),
+					threshold_volume=None if demod == DemodulationType.OFF else self.ui.horizontalSlider_addDevice_volumeThreshold.value(),
 				)
 			else:
 				library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
@@ -236,6 +258,10 @@ class MainWindow(QMainWindow):
 							self.ui.lineEdit_addDevice_name.text(),
 							signal.frequency,
 							signal.bandwidth,
+							demodulation=demod,
+							threshold_signal=self.ui.horizontalSlider_addDevice_signalPresentThreshold.value(),
+							threshold_volume=None if demod == DemodulationType.OFF else self.ui.horizontalSlider_addDevice_volumeThreshold.value(),
+
 							parent=signal
 						)
 					else:
@@ -248,10 +274,12 @@ class MainWindow(QMainWindow):
 		if new_signal:
 			self.signal_manager.add_signal(new_signal)
 			self.scanner_update_table()
+			self.ui.comboBox_addDevice_demodulation.setCurrentIndex(0)
 			self.ui.lineEdit_addDevice_name.setText("")
 			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
 			self.select_menu("btn_widgets")
 			print(f"Created: %r" % new_signal)
+
 
 	def scanner_update_table(self):
 		data = {
@@ -285,7 +313,6 @@ class MainWindow(QMainWindow):
 
 		self.ui.tableWidget.resizeColumnsToContents()
 		self.ui.tableWidget.resizeRowsToContents()
-
 	def scanner_delete_signal_callback(self, signal):
 		self.signal_manager.remove_signal(signal)
 		self.scanner_update_table()

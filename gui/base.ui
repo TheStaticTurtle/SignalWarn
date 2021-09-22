@@ -1871,26 +1871,19 @@ border-radius: 5px;
                              </widget>
                             </item>
                             <item>
-                             <layout class="QFormLayout" name="formLayout_addDevice_name">
+                             <layout class="QFormLayout" name="formLayout_addDevice_common">
+                              <property name="labelAlignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
                               <property name="horizontalSpacing">
                                <number>16</number>
                               </property>
                               <property name="verticalSpacing">
-                               <number>6</number>
+                               <number>2</number>
                               </property>
                               <property name="topMargin">
                                <number>6</number>
                               </property>
-                              <item row="0" column="1">
-                               <widget class="QLineEdit" name="lineEdit_addDevice_name">
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>0</width>
-                                  <height>35</height>
-                                 </size>
-                                </property>
-                               </widget>
-                              </item>
                               <item row="0" column="0">
                                <widget class="QLabel" name="label_addDevice_name">
                                 <property name="font">
@@ -1903,6 +1896,140 @@ border-radius: 5px;
                                  <string>Signal name</string>
                                 </property>
                                </widget>
+                              </item>
+                              <item row="0" column="1">
+                               <widget class="QLineEdit" name="lineEdit_addDevice_name">
+                                <property name="sizePolicy">
+                                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                  <horstretch>0</horstretch>
+                                  <verstretch>0</verstretch>
+                                 </sizepolicy>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>0</width>
+                                  <height>35</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item row="6" column="0">
+                               <widget class="QLabel" name="label_addDevice_signalPresentThreshold_title">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                  <bold>true</bold>
+                                 </font>
+                                </property>
+                                <property name="text">
+                                 <string>Signal present threshold</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item row="7" column="0">
+                               <widget class="QLabel" name="label_addDevice_demodulation">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                  <bold>true</bold>
+                                 </font>
+                                </property>
+                                <property name="text">
+                                 <string>Demodulation</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item row="7" column="1">
+                               <widget class="QComboBox" name="comboBox_addDevice_demodulation">
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>0</width>
+                                  <height>35</height>
+                                 </size>
+                                </property>
+                                <property name="editable">
+                                 <bool>true</bool>
+                                </property>
+                                <property name="currentText">
+                                 <string>Off</string>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>Off</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item row="9" column="0">
+                               <widget class="QLabel" name="label_addDevice_volumeThreshold_title">
+                                <property name="font">
+                                 <font>
+                                  <pointsize>10</pointsize>
+                                  <bold>true</bold>
+                                 </font>
+                                </property>
+                                <property name="text">
+                                 <string>Volume threshold</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item row="6" column="1">
+                               <layout class="QHBoxLayout" name="horizontalLayout_addDevice_signalPresent">
+                                <item>
+                                 <widget class="QSlider" name="horizontalSlider_addDevice_signalPresentThreshold">
+                                  <property name="maximum">
+                                   <number>200</number>
+                                  </property>
+                                  <property name="value">
+                                   <number>100</number>
+                                  </property>
+                                  <property name="orientation">
+                                   <enum>Qt::Horizontal</enum>
+                                  </property>
+                                 </widget>
+                                </item>
+                                <item>
+                                 <widget class="QLabel" name="label_addDevice_signalPresentThreshold">
+                                  <property name="minimumSize">
+                                   <size>
+                                    <width>40</width>
+                                    <height>0</height>
+                                   </size>
+                                  </property>
+                                  <property name="text">
+                                   <string>100</string>
+                                  </property>
+                                 </widget>
+                                </item>
+                               </layout>
+                              </item>
+                              <item row="9" column="1">
+                               <layout class="QHBoxLayout" name="horizontalLayout_addDevice_volumeThreshold">
+                                <item>
+                                 <widget class="QSlider" name="horizontalSlider_addDevice_volumeThreshold">
+                                  <property name="maximum">
+                                   <number>100</number>
+                                  </property>
+                                  <property name="value">
+                                   <number>10</number>
+                                  </property>
+                                  <property name="orientation">
+                                   <enum>Qt::Horizontal</enum>
+                                  </property>
+                                 </widget>
+                                </item>
+                                <item>
+                                 <widget class="QLabel" name="label_addDevice_volumeThreshold">
+                                  <property name="minimumSize">
+                                   <size>
+                                    <width>40</width>
+                                    <height>0</height>
+                                   </size>
+                                  </property>
+                                  <property name="text">
+                                   <string>10%</string>
+                                  </property>
+                                 </widget>
+                                </item>
+                               </layout>
                               </item>
                              </layout>
                             </item>
