@@ -13,6 +13,8 @@ from tools.Signal import Signal as RFSignal
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
 from .ressources import style, files
+from .widgets.QSignalStatusWidget import QSignalStatusWidget
+
 files.qInitResources()
 
 from .base import Ui_MainWindow
@@ -265,10 +267,7 @@ class MainWindow(QMainWindow):
 		self.ui.tableWidget.setColumnCount(5)
 		self.ui.tableWidget.horizontalHeader().setVisible(True)
 		for y, signal in enumerate(self.signal_manager.get_signals()):
-			k = QTableWidgetItem(str(signal.state))
-			self.ui.tableWidget.setItem(y, 0, k)
-			self.ui.tableWidget.item(y, 0).setBackground(QColor(255,0,0))
-
+			self.ui.tableWidget.setCellWidget(y, 0, QSignalStatusWidget(signal))
 			self.ui.tableWidget.setItem(y, 1, QTableWidgetItem(signal.name))
 			self.ui.tableWidget.setItem(y, 2, QTableWidgetItem(signal.human_frequency+" @ "+signal.human_bandwidth))
 			self.ui.tableWidget.setItem(y, 3, QTableWidgetItem(signal.parent.name if signal.has_parent else "-"))
@@ -278,7 +277,6 @@ class MainWindow(QMainWindow):
 			btn_delete.setText("Delete")
 			pLayout = QHBoxLayout(pWidget)
 			pLayout.addWidget(btn_delete)
-			# pLayout.setAlignment(QtGui.)
 			pLayout.setContentsMargins(0, 0, 0, 0)
 			pWidget.setLayout(pLayout)
 
