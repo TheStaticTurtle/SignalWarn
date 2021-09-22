@@ -1,15 +1,18 @@
 import pylab as plt
 import numpy as np
 import scipy.signal as signal
+from radio.analog import MFM
 
-
+from tools.DemodulationType import DemodulationType
 
 
 class BaseSDR:
 	def __init__(self, check_settle_time=0.01, debug=False):
 		self._check_settle_time = check_settle_time
 		self._capture_offset = 250e3
-		self._samples_per_measurement = 256 * 1024
+		self._samples_per_measurement = 768 * 1024
+		if debug:
+			self._samples_per_measurement = 10 * 1024 * 1024
 		self.debug = debug
 
 	@classmethod
@@ -32,6 +35,35 @@ class BaseSDR:
 		plt.ticklabel_format(style='plain', axis='y')
 		plt.ylim(-sample_rate / 2, sample_rate / 2)
 		fig.show()
+	@classmethod
+	def _plot_audio(cls, samples, sample_rate, title):
+		plt.figure(1)
+		plt.title(title)
+
+		plot_a = plt.subplot(211, title=title)
+		plot_a.plot(samples)
+		plot_a.set_xlabel('SR * T')
+		plot_a.set_ylabel('Energy')
+
+		plot_b = plt.subplot(212)
+		plot_b.specgram(samples, NFFT=1024, Fs=sample_rate, noverlap=900)
+		plot_b.set_xlabel('Time')
+		plot_b.set_ylabel('Frequency')
+
+		plt.show()
+	@classmethod
+	def _plot_npfft(cls, samples, sample_rate, title):
+		frequencies = np.fft.fftfreq(samples.size, 1 / sample_rate)
+		idx = np.argsort(frequencies)
+		ps = np.abs(np.fft.fft(samples)) ** 2
+
+		plt.figure()
+		plt.plot(frequencies[idx], ps[idx])
+		plt.ylabel("Power")
+		plt.xlabel("Frequency (Hz)")
+		plt.ylim(0, 100e3)
+		plt.title(title)
+		plt.show()
 
 	def _process_signal_convert(self, frequency, samples, sample_rate):
 		if self.debug:
@@ -73,25 +105,37 @@ class BaseSDR:
 
 	def _analyse_signal_get_power(self, samples, sample_rate):
 		if self.debug:
-			frequencies = np.fft.fftfreq(samples.size, 1 / sample_rate)
-			idx = np.argsort(frequencies)
-			ps = np.abs(np.fft.fft(samples)) ** 2
-
-			plt.figure()
-			plt.plot(frequencies[idx], ps[idx])
-			plt.ylabel("Power")
-			plt.xlabel("Frequency (Hz)")
-			plt.ylim(0, 100e3)
-			plt.title('Power spectrum (np.fft.fft)')
-			plt.show()
+			self._plot_npfft(samples, sample_rate, "Power analysis")
 
 		# Formula is P(dBm) = 10 * LOG( 10 * (I**2 + Q**2))
 		sq_samples = np.abs(samples) ** 2
 		lg_samples = 10*np.log(10 * sq_samples)
 		avg_pwr = np.mean(lg_samples)
 
+		self._demodulate_fm(103e3, samples, sample_rate)
+
 		return avg_pwr
 
 
-	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=0, enable_de_emphasis=False):
-		return False, 0
+	def _demodulate_fm(self, frequency, samples, sample_rate):
+		samples_decimated, sample_rate_decimated = self._process_signal_decimate(frequency, samples, sample_rate, 100e3)
+		tau = 75e-6
+		audio_sample_rate = 25e3
+
+		demod = MFM(tau, sample_rate_decimated, audio_sample_rate, cuda=False)
+		outdata = demod.run(samples_decimated)
+		LPR = outdata.astype(np.float32)
+
+		if self.debug:
+			self._plot_audio(outdata, audio_sample_rate, "FM Demodulated audio")
+
+		return LPR, audio_sample_rate
+
+	def _analyse_audio_get_power(self, samples, sample_rate):
+		if self.debug:
+			self._plot_npfft(samples, sample_rate, "Audio Power analysis")
+
+		return np.linalg.norm(samples)
+
+	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=0, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
+		return False, 0, None, None

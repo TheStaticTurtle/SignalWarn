@@ -1,4 +1,4 @@
-
+from tools.DemodulationType import DemodulationType
 from .BaseSDR import BaseSDR
 from rtlsdr import *
 import numpy as np
@@ -20,7 +20,7 @@ class RtlSDR(BaseSDR):
 			self._plot_spectrogram(samples, sample_rate, frequency, "Base signal")
 		return samples, sample_rate
 
-	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False):
+	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
 		if bandwidth < 100e3:
 			bandwidth = 100e3
 		else:
@@ -41,4 +41,13 @@ class RtlSDR(BaseSDR):
 
 		avg_power = self._analyse_signal_get_power(samples, sample_rate)
 
-		return avg_power > min_power, avg_power
+		if demodulate == DemodulationType.OFF:
+			return avg_power > min_power, avg_power, None, None
+
+		samples_audio, sample_rate_audio = None, None
+		if demodulate == DemodulationType.FM:
+			samples_audio, sample_rate_audio = self._demodulate_fm(frequency, samples, sample_rate)
+
+
+		avg_loudness = self._analyse_audio_get_power(samples_audio, sample_rate_audio)
+		return avg_power > min_power, avg_power, avg_loudness > min_loudness, avg_loudness

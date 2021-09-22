@@ -26,6 +26,8 @@ class Signal:
 
 		self.last_measured_power = None
 		self.last_measured_power_time = None
+		self.last_measured_loudness = None
+		self.last_measured_loudness_time = None
 
 	@property
 	def human_id(self):
@@ -43,11 +45,18 @@ class Signal:
 	def has_parent(self):
 		return self.parent is not None
 
-	def set_present(self, present):
-		if present:
-			self.state = SignalState.NORMAL
+	def set_present(self, signal_present, audio_present):
+		if signal_present:
+			if self.demodulation == DemodulationType.OFF:
+				self.state = SignalState.NORMAL
+			else:
+				self.state = SignalState.NORMAL if audio_present else SignalState.MUTED
 		else:
 			self.state = SignalState.ABSENT
+
+	def set_last_measured_audio_loudness(self, loudness):
+		self.last_measured_loudness = loudness
+		self.last_measured_loudness_time = time.time()
 
 	def set_last_measured_power(self, power):
 		self.last_measured_power = power

@@ -24,8 +24,8 @@ class QSignalStatusWidget(QLabel):
             colorA = QColor(255, 0, 0)
             colorB = QColor(100, 0, 0)
         if self.signal.state == SignalState.MUTED:
-            colorA = QColor(255, 100, 0)
-            colorB = QColor(100, 50, 0)
+            colorA = QColor(252, 186, 3)
+            colorB = QColor(156, 115, 3)
         if self.signal.state == SignalState.UNKNOWN:
             colorA = QColor(70, 70, 70)
             colorB = QColor(100, 100, 100)
@@ -41,8 +41,12 @@ class QSignalStatusWidget(QLabel):
         self.color_anim.start()
 
     def my_update(self):
+        text = ""
         if self.signal.last_measured_power is not None:
-            self.setText(str(round(self.signal.last_measured_power,2))+" dBm")
+            text+=str(round(self.signal.last_measured_power,2))+"dBm"
+        if self.signal.last_measured_loudness is not None:
+            text+=" "+str(round(self.signal.last_measured_loudness,2))+"vol"
+        self.setText(text)
 
         if self.signal.state != self.old_state:
             self.old_state = self.signal.state
