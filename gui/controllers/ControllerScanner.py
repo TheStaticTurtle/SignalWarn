@@ -53,7 +53,7 @@ class ControllerScanner(BaseController):
 
 			def delete_sig_callback(s: Signal):
 				def _():
-					print("Deleting %r" % s)
+					self.logger.info("Deleting signal: %r" % s)
 					self.delete_signal_callback(s)
 				return _
 			btn_delete.clicked.connect(delete_sig_callback(signal))

@@ -29,12 +29,14 @@ class ControllerSettings(BaseController):
 
 
 	def settings_importexport_import_signals(self):
+		self.logger.info("Opening open file dialog")
 		filename = QFileDialog.getOpenFileName(self.window, "Open file", "", "*.json")
 		if filename[0] != '':
 			self.signal_manager.load(filename[0])
 			self.window.controller_scanner.update_table()
 
 	def settings_importexport_export_signals(self):
+		self.logger.info("Opening save file dialog")
 		filename = QFileDialog.getSaveFileName(self.window, "Save file", "", "*.json")
 		if filename[0] != '':
 			self.signal_manager.save(filename[0])

@@ -1,3 +1,5 @@
+import logging
+
 import pylab as plt
 import numpy as np
 import scipy.signal as signal
@@ -8,6 +10,8 @@ from tools.DemodulationType import DemodulationType
 
 class BaseSDR:
 	def __init__(self, check_settle_time=0.01, debug=False):
+		self.logger = logging.getLogger(self.__class__.__name__)
+		self.logger.debug("Hellow, world")
 		self._check_settle_time = check_settle_time
 		self._capture_offset = 250e3
 		self._samples_per_measurement = 512 * 1024
@@ -108,8 +112,6 @@ class BaseSDR:
 		lg_samples = 10*np.log(10 * sq_samples)
 		avg_pwr = np.mean(lg_samples)
 
-		self._demodulate_fm(103e3, samples, sample_rate)
-
 		return avg_pwr
 	def _analyse_audio_power(self, samples, sample_rate):
 		if self.debug:
@@ -132,6 +134,7 @@ class BaseSDR:
 		return LPR, audio_sample_rate
 
 	def pre_read_radio_samples(self, frequency, bandwidth=12.5e3):
+		self.logger.info("Reading %d samples at %d @ %d" % (self._samples_per_measurement, frequency, bandwidth))
 		return None, 0
 
 	def check_frequency_from_samples(self, samples, sample_rate, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
@@ -154,6 +157,8 @@ class BaseSDR:
 			samples_audio, sample_rate_audio = self._demodulate_fm(frequency, samples, sample_rate)
 
 		avg_loudness = self._analyse_audio_power(samples_audio, sample_rate_audio)
+
+		self.logger.info("Signal analysis finished: present=%r avg_power=%f audio_present=%r, loudness=%f" % (avg_power > min_power, avg_power, avg_loudness > min_loudness, avg_loudness))
 		return avg_power > min_power, avg_power, avg_loudness > min_loudness, avg_loudness
 
 	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):

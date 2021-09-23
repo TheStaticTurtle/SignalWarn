@@ -1,3 +1,4 @@
+import logging
 import platform
 import typing
 
@@ -19,8 +20,9 @@ from gui.base import Ui_MainWindow
 class MainWindow(QMainWindow):
 	def __init__(self):
 		QMainWindow.__init__(self)
-		print('System: ' + platform.system())
-		print('Version: ' + platform.release())
+		self.logger = logging.getLogger(self.__class__.__name__)
+		self.logger.debug("Hellow, world")
+		self.logger.info(f'Running on: %s %s' % (platform.system(),platform.release()))
 
 		self.controller_menu: typing.Union[ControllerMenu, None]
 		self.controller_add_signal: typing.Union[ControllerAddSignal, None]

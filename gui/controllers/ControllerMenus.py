@@ -35,12 +35,15 @@ class ControllerMenu(BaseController):
 		self.ui.stackedWidget.setMinimumWidth(20)
 		for menu in self.menus:
 			self.add_menu_button(menu["title"], menu["btn_id"], menu["btn_icon"])
+			self.logger.debug("Created menu %s with id %s" % (menu["title"], menu["btn_id"]))
+		self.logger.info("Added %d menus" % len(self.menus))
 
 		self.select_menu(self.menus[0]["btn_id"])
 		self.ui.stackedWidget.setCurrentWidget(self.menus[0]["page"])
 
 
 	def toggle_menu(self, maxWidth):
+		self.logger.debug("Toggling sidebar menu")
 		width = self.ui.frame_left_menu.width()
 		maxExtend = maxWidth
 
@@ -81,6 +84,7 @@ class ControllerMenu(BaseController):
 					self.window.controller_scanner.update_table()
 				self.ui.stackedWidget.setCurrentWidget(menu["page"])
 				self.window.controller_menu.select_menu(menu["btn_id"])
+				self.logger.info("Button %s clicked opening %r" % (menu["btn_id"], menu["page"]))
 
 	def select_menu(self, widget):
 		for w in self.ui.frame_left_menu.findChildren(QPushButton):

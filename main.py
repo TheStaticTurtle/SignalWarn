@@ -1,10 +1,17 @@
-from sdr.BackgroundSdrThread import BackgroundSdrThread
+import logging, sys, coloredlogs
+coloredlogs.install(stream=sys.stdout, fmt="[%(asctime)s] [%(name)30s] [%(levelname)8s] %(message)s", level=logging.INFO)
+logging.info("Hellow, world")
+
+from sdr.BackgroundSdrThread import BackgroundSdrThread, BackgroundCheckProcessThread
 from sdr.RtlSDR import RtlSDR
 from gui.gui import Gui
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
+
+logging.getLogger(RtlSDR.__name__).setLevel(logging.WARNING)
+logging.getLogger(BackgroundCheckProcessThread.__name__).setLevel(logging.WARNING)
 
 libA = SignalLibrary()
 libA.signals = {
@@ -17,7 +24,7 @@ libA.signals = {
 		Signal("SignalB", 1148.8e6, 25e3),
 	],
 	"CategoryB": [
-		Signal("SignalC", 145.9e6, 100e3, demodulation=DemodulationType.AM),
+		Signal("SignalC", 145.9e6, 100e3, demodulation=DemodulationType.FM),
 		Signal("SignalD", 148.8e6, 25e3),
 	]
 }

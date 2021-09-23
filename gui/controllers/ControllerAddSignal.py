@@ -45,18 +45,29 @@ class ControllerAddSignal(BaseController):
 
 
 	def callback_comboBox_type_select(self, value):
+		if value == "":
+			return
 		if value == "Custom":
 			self.ui.stackedWidget_Add_Device.setCurrentWidget(self.ui.page_addDevice_custom)
+			self.logger.info("Selecting custom signal")
 		else:
 			self.ui.stackedWidget_Add_Device.setCurrentWidget(self.ui.page_addDevice_selector)
-			library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == value][0]
-			self.ui.comboBox_addDevice_selector_category.clear()
-			self.ui.comboBox_addDevice_selector_signal.clear()
+			library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == value]
+			if len(library) > 0:
+				library = library[0]
+				self.ui.comboBox_addDevice_selector_category.clear()
+				self.ui.comboBox_addDevice_selector_signal.clear()
 
-			cats = library.get_categories()
-			self.ui.comboBox_addDevice_selector_category.addItems(cats)
+				cats = library.get_categories()
+				self.ui.comboBox_addDevice_selector_category.addItems(cats)
+
+				self.logger.info("Loaded library: %s" % value)
+			else:
+				self.logger.warning("Failed to get library with name: %s" % value)
 
 	def callback_comboBox_selector_category(self, value):
+		if value == "":
+			return
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
 			library = library[0]
@@ -64,10 +75,13 @@ class ControllerAddSignal(BaseController):
 			signals = library.get_signals_in_category(value)
 			self.ui.comboBox_addDevice_selector_signal.clear()
 			self.ui.comboBox_addDevice_selector_signal.addItems([sig.human_id for sig in signals])
+			self.logger.info("Loaded category: %s" % value)
 		else:
-			print("Could find library")
+			self.logger.warning("Failed to get library with name: %s" % self.ui.comboBoxAddDeviceType.currentText())
 
 	def callback_comboBox_selector_signal(self, value):
+		if value == "":
+			return
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
 			library = library[0]
@@ -83,20 +97,23 @@ class ControllerAddSignal(BaseController):
 					index = self.ui.comboBox_addDevice_demodulation.findText(signal.demodulation.name.capitalize(), QtCore.Qt.MatchFixedString)
 					if index >= 0:
 						self.ui.comboBox_addDevice_demodulation.setCurrentIndex(index)
+				self.logger.info("Loaded signal: %s" % signal)
 			else:
-				print("Could find signal")
+				self.logger.warning("Failed to get signal with name: %s" % value)
 		else:
-			print("Could find library")
+			self.logger.warning("Failed to get library with name: %s" % self.ui.comboBoxAddDeviceType.currentText())
 
 	def callback_comboBox_demodulation(self, value):
 		if value == "Off":
 			self.ui.label_addDevice_volumeThreshold_title.setVisible(False)
 			self.ui.label_addDevice_volumeThreshold.setVisible(False)
 			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(False)
+			self.logger.debug("Disabled demodulation ")
 		else:
 			self.ui.label_addDevice_volumeThreshold_title.setVisible(True)
 			self.ui.label_addDevice_volumeThreshold.setVisible(True)
 			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(True)
+			self.logger.debug("Enabled demodulation %s" % value)
 
 	def callback_button_save(self):
 		new_signal = None
@@ -136,17 +153,17 @@ class ControllerAddSignal(BaseController):
 							parent=signal
 						)
 					else:
-						print("Could find signal")
+						self.logger.error("Failed to get signal with name: %s" % self.ui.comboBox_addDevice_selector_category.currentText())
 				else:
-					print("Could find library")
+					self.logger.error("Failed to get library with name: %s" % self.ui.comboBoxAddDeviceType.currentText())
 		else:
-			print("Empty name")
+			self.logger.error("Can not create signal: Signal has no name")
 
 		if new_signal:
 			self.signal_manager.add_signal(new_signal)
-			self.window.controller_scanner.scanner_update_table()
+			self.window.controller_scanner.update_table()
 			self.ui.comboBox_addDevice_demodulation.setCurrentIndex(0)
 			self.ui.lineEdit_addDevice_name.setText("")
 			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
 			self.window.controller_menu.select_menu("btn_scanner")
-			print(f"Created: %r" % new_signal)
+			self.logger.info("Created signal %r " % new_signal)
