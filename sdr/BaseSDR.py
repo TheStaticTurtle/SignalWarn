@@ -2,7 +2,7 @@ import pylab as plt
 import numpy as np
 import scipy.signal as signal
 from radio.analog import MFM
-
+import math
 from tools.DemodulationType import DemodulationType
 
 
@@ -10,7 +10,7 @@ class BaseSDR:
 	def __init__(self, check_settle_time=0.01, debug=False):
 		self._check_settle_time = check_settle_time
 		self._capture_offset = 250e3
-		self._samples_per_measurement = 768 * 1024
+		self._samples_per_measurement = 512 * 1024
 		if debug:
 			self._samples_per_measurement = 10 * 1024 * 1024
 		self.debug = debug
@@ -99,7 +99,7 @@ class BaseSDR:
 
 		return samples_de_emphasis, sample_rate
 
-	def _analyse_signal_get_power(self, samples, sample_rate):
+	def _analyse_signal_power(self, samples, sample_rate):
 		if self.debug:
 			self._plot_npfft(samples, sample_rate, "Power analysis")
 
@@ -111,6 +111,11 @@ class BaseSDR:
 		self._demodulate_fm(103e3, samples, sample_rate)
 
 		return avg_pwr
+	def _analyse_audio_power(self, samples, sample_rate):
+		if self.debug:
+			self._plot_npfft(samples, sample_rate, "Audio Power analysis")
+
+		return np.linalg.norm(samples)
 
 	def _demodulate_fm(self, frequency, samples, sample_rate):
 		samples_decimated, sample_rate_decimated = self._process_signal_decimate(frequency, samples, sample_rate, 100e3)
@@ -126,11 +131,31 @@ class BaseSDR:
 
 		return LPR, audio_sample_rate
 
-	def _analyse_audio_get_power(self, samples, sample_rate):
-		if self.debug:
-			self._plot_npfft(samples, sample_rate, "Audio Power analysis")
+	def pre_read_radio_samples(self, frequency, bandwidth=12.5e3):
+		return None, 0
 
-		return np.linalg.norm(samples)
+	def check_frequency_from_samples(self, samples, sample_rate, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
+		bandwidth = 100e3 if bandwidth < 100e3 else bandwidth*2
 
-	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=0, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
-		return False, 0, None, None
+		samples, sample_rate = self._process_signal_convert(frequency, samples, sample_rate)
+		samples, sample_rate = self._process_signal_recenter(frequency, samples, sample_rate)
+		samples, sample_rate = self._process_signal_decimate(frequency, samples, sample_rate, bandwidth)
+
+		if enable_de_emphasis:
+			samples, sample_rate = self._process_signal_de_emphasis(frequency, samples, sample_rate)
+
+		avg_power = self._analyse_signal_power(samples, sample_rate)
+
+		if demodulate == DemodulationType.OFF:
+			return avg_power > min_power, avg_power, None, None
+
+		samples_audio, sample_rate_audio = None, None
+		if demodulate == DemodulationType.FM:
+			samples_audio, sample_rate_audio = self._demodulate_fm(frequency, samples, sample_rate)
+
+		avg_loudness = self._analyse_audio_power(samples_audio, sample_rate_audio)
+		return avg_power > min_power, avg_power, avg_loudness > min_loudness, avg_loudness
+
+	def check_frequency(self, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
+		samples, sample_rate = self.pre_read_radio_samples(frequency, bandwidth)
+		return self.check_frequency_from_samples(samples, sample_rate, frequency, bandwidth, min_power, enable_de_emphasis, demodulate, min_loudness)
