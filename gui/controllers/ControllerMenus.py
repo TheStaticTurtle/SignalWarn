@@ -5,21 +5,21 @@ from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
 from PySide6.QtGui import (QColor, QFont, QBrush)
 from PySide6.QtWidgets import *
 
-from ..base import Ui_MainWindow
-from ..ressources import style, files
+from gui.base import Ui_MainWindow
+from gui.ressources import style, files
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal, Signal
 
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
 
-from .BaseController import BaseController
+from gui.controllers.BaseController import BaseController
 
 class ControllerMenu(BaseController):
-	def __init__(self, parent, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
+	def __init__(self, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
 		super().__init__()
 		self.ui = ui
-		self.parent = parent
+		self.window = window
 		self.signal_libraries = signal_libraries
 		self.signal_manager = signal_manager
 
@@ -78,9 +78,9 @@ class ControllerMenu(BaseController):
 		for menu in self.menus:
 			if menu["btn_id"] == btnWidget.objectName():
 				if menu["btn_id"] == "btn_scanner":
-					self.parent.controller_scanner.scanner_update_table()
+					self.window.controller_scanner.update_table()
 				self.ui.stackedWidget.setCurrentWidget(menu["page"])
-				self.parent.controller_menu.select_menu(menu["btn_id"])
+				self.window.controller_menu.select_menu(menu["btn_id"])
 
 	def select_menu(self, widget):
 		for w in self.ui.frame_left_menu.findChildren(QPushButton):

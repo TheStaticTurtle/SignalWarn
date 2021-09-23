@@ -6,15 +6,15 @@ from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
 from PySide6.QtGui import (QColor, QFont, QBrush)
 from PySide6.QtWidgets import *
 
-from .controllers.ControllerAddSignal import ControllerAddSignal
-from .controllers.ControllerMenus import ControllerMenu
-from .controllers.ControllerScanner import ControllerScanner
-from .controllers.ControllerSettings import ControllerSettings
-from .ressources import style, files
+from gui.controllers.ControllerAddSignal import ControllerAddSignal
+from gui.controllers.ControllerMenus import ControllerMenu
+from gui.controllers.ControllerScanner import ControllerScanner
+from gui.controllers.ControllerSettings import ControllerSettings
+from gui.ressources import style, files
 
 files.qInitResources()
 
-from .base import Ui_MainWindow
+from gui.base import Ui_MainWindow
 
 class MainWindow(QMainWindow):
 	def __init__(self):

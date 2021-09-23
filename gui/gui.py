@@ -7,15 +7,15 @@ from PySide6.QtWidgets import *
 import os.path
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
-from .controllers.ControllerAddSignal import ControllerAddSignal
-from .controllers.ControllerMenus import ControllerMenu
-from .controllers.ControllerScanner import ControllerScanner
-from .controllers.ControllerSettings import ControllerSettings
+from gui.controllers.ControllerAddSignal import ControllerAddSignal
+from gui.controllers.ControllerMenus import ControllerMenu
+from gui.controllers.ControllerScanner import ControllerScanner
+from gui.controllers.ControllerSettings import ControllerSettings
 
-from .gui_mainwindow import MainWindow
+from gui.gui_mainwindow import MainWindow
 
 
-from .ressources import style, files
+from gui.ressources import style, files
 files.qInitResources()
 
 class Gui:
@@ -35,7 +35,7 @@ class Gui:
 		self.window.controller_scanner = ControllerScanner(self.window, self.window.ui, self.signal_libraries, self.signal_manager)
 		self.window.controller_settings = ControllerSettings(self.window, self.window.ui, self.signal_libraries, self.signal_manager)
 
-		self.window.controller_scanner.scanner_update_table()
+		self.window.controller_scanner.update_table()
 		self.window.show()
 
 	def run(self):

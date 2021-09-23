@@ -11,15 +11,14 @@ from tools.Signal import Signal as RFSignal, Signal
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
 
-from .BaseController import BaseController
-from ..base import Ui_MainWindow
-
+from gui.controllers.BaseController import BaseController
+from gui.base import Ui_MainWindow
 
 class ControllerAddSignal(BaseController):
-	def __init__(self, parent, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
+	def __init__(self, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
 		super().__init__()
 		self.ui = ui
-		self.parent = parent
+		self.window = window
 		self.signal_libraries = signal_libraries
 		self.signal_manager = signal_manager
 
@@ -29,25 +28,23 @@ class ControllerAddSignal(BaseController):
 				self.ui.comboBoxAddDeviceType.addItem("Custom")
 			else:
 				self.ui.comboBoxAddDeviceType.addItem(signal_library.NAME)
-		self.ui.comboBoxAddDeviceType.currentTextChanged.connect(self.add_device_comboBox_type_select)
+		self.ui.comboBoxAddDeviceType.currentTextChanged.connect(self.callback_comboBox_type_select)
 		self.ui.comboBox_addDevice_selector_category.currentTextChanged.connect(
-			self.add_device_comboBox_selector_category)
-		self.ui.comboBox_addDevice_selector_signal.currentTextChanged.connect(self.add_device_comboBox_selector_signal)
-		self.ui.pushButton_addDevice_save.clicked.connect(self.add_device_button_save)
+			self.callback_comboBox_selector_category)
+		self.ui.comboBox_addDevice_selector_signal.currentTextChanged.connect(self.callback_comboBox_selector_signal)
+		self.ui.pushButton_addDevice_save.clicked.connect(self.callback_button_save)
 
 		self.ui.stackedWidget.setCurrentWidget(self.ui.page_addDevice_custom)
 
-		self.ui.comboBox_addDevice_demodulation.currentTextChanged.connect(self.add_device_comboBox_demodulation)
+		self.ui.comboBox_addDevice_demodulation.currentTextChanged.connect(self.callback_comboBox_demodulation)
 		self.ui.comboBox_addDevice_demodulation.addItems([x.name.capitalize() for x in list(DemodulationType)])
-		self.add_device_comboBox_demodulation("Off")
+		self.callback_comboBox_demodulation("Off")
 
-		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(
-			lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x) + "dBm"))
-		self.ui.horizontalSlider_addDevice_volumeThreshold.valueChanged.connect(
-			lambda x: self.ui.label_addDevice_volumeThreshold.setText(str(x) + "%"))
+		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x) + "dBm"))
+		self.ui.horizontalSlider_addDevice_volumeThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_volumeThreshold.setText(str(x) + "%"))
 
 
-	def add_device_comboBox_type_select(self, value):
+	def callback_comboBox_type_select(self, value):
 		if value == "Custom":
 			self.ui.stackedWidget_Add_Device.setCurrentWidget(self.ui.page_addDevice_custom)
 		else:
@@ -59,7 +56,7 @@ class ControllerAddSignal(BaseController):
 			cats = library.get_categories()
 			self.ui.comboBox_addDevice_selector_category.addItems(cats)
 
-	def add_device_comboBox_selector_category(self, value):
+	def callback_comboBox_selector_category(self, value):
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
 			library = library[0]
@@ -70,7 +67,7 @@ class ControllerAddSignal(BaseController):
 		else:
 			print("Could find library")
 
-	def add_device_comboBox_selector_signal(self, value):
+	def callback_comboBox_selector_signal(self, value):
 		library = [l for l in self.signal_libraries if l != "Custom" and l.NAME == self.ui.comboBoxAddDeviceType.currentText()]
 		if len(library) > 0:
 			library = library[0]
@@ -91,7 +88,7 @@ class ControllerAddSignal(BaseController):
 		else:
 			print("Could find library")
 
-	def add_device_comboBox_demodulation(self, value):
+	def callback_comboBox_demodulation(self, value):
 		if value == "Off":
 			self.ui.label_addDevice_volumeThreshold_title.setVisible(False)
 			self.ui.label_addDevice_volumeThreshold.setVisible(False)
@@ -101,7 +98,7 @@ class ControllerAddSignal(BaseController):
 			self.ui.label_addDevice_volumeThreshold.setVisible(True)
 			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(True)
 
-	def add_device_button_save(self):
+	def callback_button_save(self):
 		new_signal = None
 
 		if self.ui.lineEdit_addDevice_name.text() != "":
@@ -147,9 +144,9 @@ class ControllerAddSignal(BaseController):
 
 		if new_signal:
 			self.signal_manager.add_signal(new_signal)
-			self.parent.controller_scanner.scanner_update_table()
+			self.window.controller_scanner.scanner_update_table()
 			self.ui.comboBox_addDevice_demodulation.setCurrentIndex(0)
 			self.ui.lineEdit_addDevice_name.setText("")
 			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
-			self.parent.controller_menu.select_menu("btn_scanner")
+			self.window.controller_menu.select_menu("btn_scanner")
 			print(f"Created: %r" % new_signal)

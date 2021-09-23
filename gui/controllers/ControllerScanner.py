@@ -5,38 +5,31 @@ from PySide6.QtCore import (QPropertyAnimation, QSize, Qt)
 from PySide6.QtGui import (QColor, QFont, QBrush)
 from PySide6.QtWidgets import *
 
-from ..base import Ui_MainWindow
-from ..ressources import style, files
+from gui.base import Ui_MainWindow
+from gui.ressources import style, files
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal, Signal
 
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
 
-from ..widgets.QSignalCheckedWidget import QSignalCheckedWidget
-from ..widgets.QSignalStatusWidget import QSignalStatusWidget
+from gui.widgets.QSignalCheckedWidget import QSignalCheckedWidget
+from gui.widgets.QSignalStatusWidget import QSignalStatusWidget
 
-from .BaseController import BaseController
+from gui.controllers.BaseController import BaseController
 
 class ControllerScanner(BaseController):
-	def __init__(self, parent, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
+	def __init__(self, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
 		super().__init__()
 		self.ui = ui
-		self.parent = parent
+		self.window = window
 		self.signal_libraries = signal_libraries
 		self.signal_manager = signal_manager
 
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
 
 
-	def scanner_update_table(self):
-		data = {
-			"Status": [],
-			"Name": [],
-			"Freq @ Bw": [],
-			"Comment": [],
-		}
-
+	def update_table(self):
 		self.ui.tableWidget.clear()
 
 		self.ui.tableWidget.setHorizontalHeaderLabels(["", "Status", "Name", "Freq @ Bw", "Comment", "Actions"])
@@ -61,7 +54,7 @@ class ControllerScanner(BaseController):
 			def delete_sig_callback(s: Signal):
 				def _():
 					print("Deleting %r" % s)
-					self.scanner_delete_signal_callback(s)
+					self.delete_signal_callback(s)
 				return _
 			btn_delete.clicked.connect(delete_sig_callback(signal))
 			self.ui.tableWidget.setCellWidget(y, 5, pWidget)
@@ -75,8 +68,8 @@ class ControllerScanner(BaseController):
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
 		self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
 
-		self.parent.controller_menu.select_menu("btn_scanner")
+		self.window.controller_menu.select_menu("btn_scanner")
 
-	def scanner_delete_signal_callback(self, signal):
+	def delete_signal_callback(self, signal):
 		self.signal_manager.remove_signal(signal)
-		self.scanner_update_table()
+		self.update_table()
