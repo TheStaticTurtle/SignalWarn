@@ -64,6 +64,34 @@ class Signal:
 		self.last_measured_power = power
 		self.last_measured_power_time = time.time()
 
+	def to_dict(self):
+		return {
+			"name": self.name,
+			"frequency": self.frequency,
+			"bandwidth": self.bandwidth,
+			"demodulation": self.demodulation.name,
+			"threshold_volume": self.threshold_volume,
+			"threshold_signal": self.threshold_signal,
+			"parent": None if self.parent is None else self.parent.to_dict(),
+		}
+
+	@classmethod
+	def from_dict(cls, data):
+		parent = None
+		if data["parent"] is not None:
+			parent = cls.from_dict(data["parent"])
+
+		signal = cls(
+			data["name"],
+			data["frequency"],
+			data["bandwidth"],
+			threshold_signal=data["threshold_signal"],
+			demodulation=[d for d in DemodulationType if d.name == data["demodulation"]][0],
+			threshold_volume=data["threshold_volume"],
+			parent=parent
+		)
+		return signal
+
 	def __repr__(self):
 		return f"<Signal \"%s\" freq=%s bw=%s state=%s demod=%r thresh_volume=%r thresh_signal=%r%s>" % (
 			self.name,

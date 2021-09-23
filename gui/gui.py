@@ -28,9 +28,10 @@ class MainWindow(QMainWindow):
 		self.ui.setupUi(self)
 
 		self.menus = [
-			{"title": "Home",       "btn_id": "btn_home",       "btn_icon": "url(:/16x16/icons/16x16/cil-home.png)",  "page": self.ui.page_home},
-			{"title": "Add device", "btn_id": "btn_add_device", "btn_icon": "url(:/16x16/icons/16x16/cil-plus.png)",  "page": self.ui.page_add_device},
-			{"title": "Scanner",    "btn_id": "btn_widgets",    "btn_icon": "url(:/16x16/icons/16x16/cil-chart.png)", "page": self.ui.page_scanner},
+			{"title": "Home",       "btn_id": "btn_home",       "btn_icon": "url(:/16x16/icons/16x16/cil-home.png)",     "page": self.ui.page_home},
+			{"title": "Add device", "btn_id": "btn_add_device", "btn_icon": "url(:/16x16/icons/16x16/cil-plus.png)",     "page": self.ui.page_add_device},
+			{"title": "Scanner",    "btn_id": "btn_scanner",    "btn_icon": "url(:/16x16/icons/16x16/cil-chart.png)",    "page": self.ui.page_scanner},
+			{"title": "Settings",   "btn_id": "btn_settings",   "btn_icon": "url(:/16x16/icons/16x16/cil-settings.png)", "page": self.ui.page_settings},
 		]
 
 		self.signal_manager = signal_manager
@@ -109,6 +110,12 @@ class MainWindow(QMainWindow):
 
 		self.ui.horizontalSlider_addDevice_signalPresentThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_signalPresentThreshold.setText(str(x)+"dBm"))
 		self.ui.horizontalSlider_addDevice_volumeThreshold.valueChanged.connect(lambda x: self.ui.label_addDevice_volumeThreshold.setText(str(x)+"%"))
+
+		self.scanner_update_table()
+
+		self.ui.pushButton_import_signals.pressed.connect(self.settings_importexport_import_signals)
+		self.ui.pushButton_export_signals.pressed.connect(self.settings_importexport_export_signals)
+
 		self.show()
 
 	def toggle_menu(self, maxWidth):
@@ -160,7 +167,7 @@ class MainWindow(QMainWindow):
 		btnWidget = self.sender()
 		for menu in self.menus:
 			if menu["btn_id"] == btnWidget.objectName():
-				if menu["btn_id"] == "btn_widgets":
+				if menu["btn_id"] == "btn_scanner":
 					self.scanner_update_table()
 				self.ui.stackedWidget.setCurrentWidget(menu["page"])
 				self.select_menu(menu["btn_id"])
@@ -227,7 +234,6 @@ class MainWindow(QMainWindow):
 			self.ui.label_addDevice_volumeThreshold_title.setVisible(True)
 			self.ui.label_addDevice_volumeThreshold.setVisible(True)
 			self.ui.horizontalSlider_addDevice_volumeThreshold.setVisible(True)
-
 	def add_device_button_save(self):
 		new_signal = None
 
@@ -278,9 +284,8 @@ class MainWindow(QMainWindow):
 			self.ui.comboBox_addDevice_demodulation.setCurrentIndex(0)
 			self.ui.lineEdit_addDevice_name.setText("")
 			self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
-			self.select_menu("btn_widgets")
+			self.select_menu("btn_scanner")
 			print(f"Created: %r" % new_signal)
-
 
 	def scanner_update_table(self):
 		data = {
@@ -321,10 +326,22 @@ class MainWindow(QMainWindow):
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-
 	def scanner_delete_signal_callback(self, signal):
 		self.signal_manager.remove_signal(signal)
 		self.scanner_update_table()
+
+	def settings_importexport_import_signals(self):
+		filename = QFileDialog.getOpenFileName(self, "Open file", "", "*.json")
+		if filename[0] != '':
+			self.signal_manager.load(filename[0])
+			self.scanner_update_table()
+
+	def settings_importexport_export_signals(self):
+		filename = QFileDialog.getSaveFileName(self, "Save file", "", "*.json")
+		if filename[0] != '':
+			self.signal_manager.save(filename[0])
+			self.scanner_update_table()
+
 
 class Gui:
 	def __init__(self, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):

@@ -1,3 +1,4 @@
+import json
 import typing
 
 from .Signal import Signal
@@ -21,4 +22,16 @@ class SignalManager:
 
 	def get_signals(self) -> typing.List[Signal]:
 		return self.signals
+
+	def load(self, filename):
+		data = json.loads(open(filename,"r").read())
+		self.signals = []
+		for dict_signal in data["signals"]:
+			self.add_signal(Signal.from_dict(dict_signal))
+
+	def save(self, filename):
+		data = {
+			"signals": [signal.to_dict() for signal in self.signals]
+		}
+		open(filename, "w").write(json.dumps(data))
 
