@@ -5,16 +5,21 @@ import numpy as np
 import scipy.signal as signal
 from radio.analog import MFM
 import math
+
+from tools.Config import Config
 from tools.DemodulationType import DemodulationType
 
 
 class BaseSDR:
-	def __init__(self, check_settle_time=0.01, debug=False):
+	def __init__(self, config: Config, debug=False):
+		self.config = config
 		self.logger = logging.getLogger(self.__class__.__name__)
 		self.logger.debug("Hellow, world")
-		self._check_settle_time = check_settle_time
-		self._capture_offset = 250e3
-		self._samples_per_measurement = 512 * 1024
+
+		self._check_settle_time = self.config.get("radio.sdr.settle_time", 0.01)
+		self._capture_offset = self.config.get("radio.sdr.capture_offset", 250e3)
+		self._samples_per_measurement = self.config.get("radio.sdr.samples_per_measurement", 512*1024)
+
 		if debug:
 			self._samples_per_measurement = 10 * 1024 * 1024
 		self.debug = debug
@@ -138,7 +143,8 @@ class BaseSDR:
 		return None, 0
 
 	def check_frequency_from_samples(self, samples, sample_rate, frequency, bandwidth=12.5e3, min_power=-math.inf, enable_de_emphasis=False, demodulate=DemodulationType.OFF, min_loudness=0):
-		bandwidth = 100e3 if bandwidth < 100e3 else bandwidth*2
+		bandwidth_mini = self.config.get("radio.processing.minimum_filter_bw", 100e3)
+		bandwidth = bandwidth_mini if bandwidth < bandwidth_mini else bandwidth*2
 
 		samples, sample_rate = self._process_signal_convert(frequency, samples, sample_rate)
 		samples, sample_rate = self._process_signal_recenter(frequency, samples, sample_rate)

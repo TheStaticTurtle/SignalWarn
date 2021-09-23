@@ -3,24 +3,25 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget
 from PySide6.QtWidgets import QLabel
 
+from tools.Config import Config
 from tools.Signal import SignalState
 from tools.Signal import Signal
 
 
 class QSignalCheckedWidget(QLabel):
-    def __init__(self, signal: Signal, *args, **kwargs):
+    def __init__(self, config: Config, signal: Signal, *args, **kwargs):
         super(QSignalCheckedWidget, self).__init__(*args, **kwargs)
         self.signal = signal
+        self.config = config
         self.old_state = None
 
         self.color_anim = QtCore.QPropertyAnimation(self, b'backColor')
         self.updateStatus()
 
     def updateStatus(self):
-        colorA = QColor(0, 217, 255)
-        colorB = QColor(0, 167, 196)
+        colorA = QColor(*self.config.get("ui.color.checking_signal", (0, 217, 255)))
+        colorB = QColor(*self.config.get("ui.color.checking_signal_faded", (0, 167, 196)))
 
-        self.setBackColor(colorA)
         self.color_anim.setStartValue(colorA)
         self.color_anim.setKeyValueAt(0.5, colorB)
         self.color_anim.setEndValue(colorA)

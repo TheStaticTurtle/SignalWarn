@@ -1,4 +1,7 @@
 import logging, sys, coloredlogs
+
+from tools.Config import Config
+
 coloredlogs.install(stream=sys.stdout, fmt="[%(asctime)s] [%(name)30s] [%(levelname)8s] %(message)s", level=logging.INFO)
 logging.info("Hellow, world")
 
@@ -32,17 +35,20 @@ libA.signals = {
 signal_libraries = [libA]
 signals_manager = SignalManager()
 
-sdr = RtlSDR(debug=False)
+config = Config(signals_manager)
 
-sdrWorkerThread = BackgroundSdrThread(sdr, signals_manager)
+sdr = RtlSDR(config, debug=False)
+
+sdrWorkerThread = BackgroundSdrThread(config, sdr, signals_manager)
 sdrWorkerThread.start()
 
-gui = Gui(signal_libraries, signals_manager)
+gui = Gui(config, signal_libraries, signals_manager)
 gui.run()
 
 sdrWorkerThread.quit()
 sdrWorkerThread.join()
 
+config.on_exit()
 
 # from tools.DemodulationType import DemodulationType
 #

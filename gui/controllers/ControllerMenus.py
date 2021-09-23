@@ -7,6 +7,7 @@ from PySide6.QtWidgets import *
 
 from gui.base import Ui_MainWindow
 from gui.ressources import style, files
+from tools.Config import Config
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal, Signal
 
@@ -16,8 +17,8 @@ from tools.SignalManager import SignalManager
 from gui.controllers.BaseController import BaseController
 
 class ControllerMenu(BaseController):
-	def __init__(self, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
-		super().__init__()
+	def __init__(self, config: Config, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
+		super().__init__(config)
 		self.ui = ui
 		self.window = window
 		self.signal_libraries = signal_libraries

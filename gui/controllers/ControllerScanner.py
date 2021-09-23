@@ -7,6 +7,7 @@ from PySide6.QtWidgets import *
 
 from gui.base import Ui_MainWindow
 from gui.ressources import style, files
+from tools.Config import Config
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal, Signal
 
@@ -19,14 +20,15 @@ from gui.widgets.QSignalStatusWidget import QSignalStatusWidget
 from gui.controllers.BaseController import BaseController
 
 class ControllerScanner(BaseController):
-	def __init__(self, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
-		super().__init__()
+	def __init__(self, config: Config, window, ui: Ui_MainWindow, signal_libraries: typing.List[SignalLibrary], signal_manager: SignalManager):
+		super().__init__(config)
 		self.ui = ui
 		self.window = window
 		self.signal_libraries = signal_libraries
 		self.signal_manager = signal_manager
 
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+		self.update_table()
 
 
 	def update_table(self):
@@ -37,8 +39,8 @@ class ControllerScanner(BaseController):
 		self.ui.tableWidget.setRowCount(len(self.signal_manager.get_signals())+1)
 		self.ui.tableWidget.horizontalHeader().setVisible(True)
 		for y, signal in enumerate(self.signal_manager.get_signals()):
-			self.ui.tableWidget.setCellWidget(y, 0, QSignalCheckedWidget(signal))
-			self.ui.tableWidget.setCellWidget(y, 1, QSignalStatusWidget(signal))
+			self.ui.tableWidget.setCellWidget(y, 0, QSignalCheckedWidget(self.config, signal))
+			self.ui.tableWidget.setCellWidget(y, 1, QSignalStatusWidget(self.config, signal))
 			self.ui.tableWidget.setItem(y, 2, QTableWidgetItem(signal.name))
 			self.ui.tableWidget.setItem(y, 3, QTableWidgetItem(signal.human_frequency+" @ "+signal.human_bandwidth))
 			self.ui.tableWidget.setItem(y, 4, QTableWidgetItem(signal.parent.name if signal.has_parent else "-"))

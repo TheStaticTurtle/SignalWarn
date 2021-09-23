@@ -3,14 +3,16 @@ import threading
 import logging
 
 from sdr.BaseSDR import BaseSDR
+from tools.Config import Config
 from tools.Signal import Signal
 from tools.SignalManager import SignalManager
 
 
 class BackgroundCheckProcessThread(threading.Thread):
-	def __init__(self, sdr: BaseSDR, data, signal: Signal):
+	def __init__(self, config: Config, sdr: BaseSDR, data, signal: Signal):
 		super().__init__()
 		self.logger = logging.getLogger(self.__class__.__name__)
+		self.config = config
 		self.sdr = sdr
 		self.data = data
 		self.signal = signal
@@ -23,7 +25,7 @@ class BackgroundCheckProcessThread(threading.Thread):
 			self.signal.frequency,
 			bandwidth=self.signal.bandwidth,
 			min_power=self.signal.threshold_signal,
-			enable_de_emphasis=False,
+			enable_de_emphasis=self.config.get("radio.processing.enable_de_emphasis", False),
 			demodulate=self.signal.demodulation,
 			min_loudness=self.signal.threshold_volume
 		)
@@ -34,8 +36,9 @@ class BackgroundCheckProcessThread(threading.Thread):
 
 
 class BackgroundSdrThread(threading.Thread):
-	def __init__(self, sdr: BaseSDR, signals_manager: SignalManager):
+	def __init__(self, config: Config, sdr: BaseSDR, signals_manager: SignalManager):
 		super().__init__()
+		self.config = config
 		self.logger = logging.getLogger(self.__class__.__name__)
 		self.logger.debug("Hellow, world")
 		self.running = True
@@ -52,7 +55,7 @@ class BackgroundSdrThread(threading.Thread):
 			for signal in self.signals_manager.get_signals():
 				signal.is_been_checked = True
 				data = self.sdr.pre_read_radio_samples(signal.frequency, bandwidth=signal.bandwidth)
-				t = BackgroundCheckProcessThread(self.sdr, data, signal)
+				t = BackgroundCheckProcessThread(self.config, self.sdr, data, signal)
 				t.start()
 				if not self.running:
 					break
