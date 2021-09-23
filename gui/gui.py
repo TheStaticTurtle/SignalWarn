@@ -10,7 +10,7 @@ from PySide6.QtWidgets import *
 import os.path
 
 from tools.DemodulationType import DemodulationType
-from tools.Signal import Signal as RFSignal
+from tools.Signal import Signal as RFSignal, Signal
 from tools.SignalLibrary import SignalLibrary
 from tools.SignalManager import SignalManager
 from .ressources import style, files
@@ -316,7 +316,12 @@ class MainWindow(QMainWindow):
 			pLayout.setContentsMargins(0, 0, 0, 0)
 			pWidget.setLayout(pLayout)
 
-			btn_delete.clicked.connect(lambda: self.scanner_delete_signal_callback(signal))
+			def delete_sig_callback(s: Signal):
+				def _():
+					print("Deleting %r" % s)
+					self.scanner_delete_signal_callback(s)
+				return _
+			btn_delete.clicked.connect(delete_sig_callback(signal))
 			self.ui.tableWidget.setCellWidget(y, 5, pWidget)
 
 		self.ui.tableWidget.resizeColumnsToContents()
@@ -326,6 +331,8 @@ class MainWindow(QMainWindow):
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+		self.ui.stackedWidget.setCurrentWidget(self.ui.page_scanner)
+		self.select_menu("btn_scanner")
 	def scanner_delete_signal_callback(self, signal):
 		self.signal_manager.remove_signal(signal)
 		self.scanner_update_table()
