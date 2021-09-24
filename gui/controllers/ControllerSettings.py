@@ -7,6 +7,7 @@ from PySide6.QtWidgets import *
 
 from gui.base import Ui_MainWindow
 from gui.ressources import style, files
+from gui.widgets.QColorPicker import QColorPicker
 from tools.Config import Config
 from tools.DemodulationType import DemodulationType
 from tools.Signal import Signal as RFSignal, Signal
@@ -27,6 +28,22 @@ class ControllerSettings(BaseController):
 		self.ui.pushButton_import_signals.pressed.connect(self.settings_importexport_import_signals)
 		self.ui.pushButton_export_signals.pressed.connect(self.settings_importexport_export_signals)
 
+		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_absent, "ui.color.signal_absent", "ui.color.signal_absent_faded")
+		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_unknown, "ui.color.signal_unknown", "ui.color.signal_unknown_faded")
+		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_muted, "ui.color.signal_muted", "ui.color.signal_muted_faded")
+		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_normal, "ui.color.signal_normal", "ui.color.signal_normal_faded")
+		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_checking, "ui.color.checking_signal", "ui.color.checking_signal_faded")
+
+	def add_colorpickers_to_hl(self,layout, settingA, settingB):
+		colorPicker_A = QColorPicker(QColor(*self.config.get(settingA, (255, 255, 255))))
+		colorPicker_B = QColorPicker(QColor(*self.config.get(settingB, (255, 255, 255))))
+		colorPicker_A.setMinimumSize(100,15)
+		colorPicker_B.setMinimumSize(100,15)
+		layout.addWidget(colorPicker_A)
+		layout.addWidget(colorPicker_B)
+
+		colorPicker_A.on_color.connect(lambda color: self.config.set(settingA, (color.red(), color.green(), color.blue())))
+		colorPicker_B.on_color.connect(lambda color: self.config.set(settingB, (color.red(), color.green(), color.blue())))
 
 
 	def settings_importexport_import_signals(self):

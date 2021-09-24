@@ -115,12 +115,14 @@ class Config:
 	def load_config(self, path=None):
 		if path is None:
 			path = self.config_file_path
+		self.logger.info("Loading config from %s" % path)
 		saved_conf = json.loads(open(path).read())
 		self._config = self.correct_dict(saved_conf, default_config)
 
 	def save_config(self, path=None):
 		if path is None:
 			path = self.config_file_path
+		self.logger.info("Saving config to %s" % path)
 		data = json.dumps(self._config, indent=4)
 		open(path, "w").write(data)
 
@@ -139,4 +141,21 @@ class Config:
 
 	def on_exit(self):
 		self.signals_manager.save(self.snapshot_file_path)
+
+	def set(self, property_chain, value):
+		chains = property_chain.split(".")
+
+		def chain_to_dict(c):
+			return "self._config" + "".join(["[\""+x+"\"]" for x in c])
+		
+		for i in range(len(chains)-1):
+			tmp = chains[:i+1]
+			try:
+				eval(chain_to_dict(tmp))
+			except KeyError:
+				self.logger.warning("Setting unknown key %s" % '.'.join(tmp))
+				exec(chain_to_dict(tmp) + " = {}")
+		exec(chain_to_dict(chains) + " = value")
+
+		self.save_config()
 

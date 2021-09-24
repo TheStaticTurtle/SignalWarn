@@ -28,6 +28,8 @@ class ControllerScanner(BaseController):
 		self.signal_manager = signal_manager
 
 		self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+		self.ui.pushButton_scanner_deleteAll.pressed.connect(self.delete_all_signal_callback)
+
 		self.update_table()
 
 
@@ -74,4 +76,8 @@ class ControllerScanner(BaseController):
 
 	def delete_signal_callback(self, signal):
 		self.signal_manager.remove_signal(signal)
+		self.update_table()
+
+	def delete_all_signal_callback(self):
+		self.signal_manager.clear_all()
 		self.update_table()
