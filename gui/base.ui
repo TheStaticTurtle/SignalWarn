@@ -934,7 +934,7 @@ QPushButton:pressed {
                    <string notr="true">background: transparent;</string>
                   </property>
                   <property name="currentIndex">
-                   <number>3</number>
+                   <number>0</number>
                   </property>
                   <widget class="QWidget" name="page_home">
                    <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -949,7 +949,7 @@ QPushButton:pressed {
                        <string notr="true"/>
                       </property>
                       <property name="text">
-                       <string>HOME</string>
+                       <string>WELCOME</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
@@ -964,7 +964,7 @@ QPushButton:pressed {
                        </font>
                       </property>
                       <property name="text">
-                       <string>Empty Page</string>
+                       <string>To get started, you can go to the signal tab and add a signal</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>

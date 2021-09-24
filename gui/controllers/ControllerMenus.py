@@ -25,7 +25,7 @@ class ControllerMenu(BaseController):
 		self.signal_manager = signal_manager
 
 		self.menus = [
-			{"title": "Home", "btn_id": "btn_home", "btn_icon": "url(:/16x16/icons/16x16/cil-home.png)",  "page": self.ui.page_home},
+			# {"title": "Home", "btn_id": "btn_home", "btn_icon": "url(:/16x16/icons/16x16/cil-home.png)",  "page": self.ui.page_home},
 			{"title": "Scanner", "btn_id": "btn_scanner", "btn_icon": "url(:/16x16/icons/16x16/cil-chart.png)", "page": self.ui.page_scanner},
 			{"title": "Add device", "btn_id": "btn_add_device", "btn_icon": "url(:/16x16/icons/16x16/cil-plus.png)", "page": self.ui.page_add_device},
 			{"title": "Settings", "btn_id": "btn_settings", "btn_icon": "url(:/16x16/icons/16x16/cil-settings.png)", "page": self.ui.page_settings},
