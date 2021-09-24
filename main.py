@@ -8,31 +8,16 @@ logging.info("Hellow, world")
 from sdr.BackgroundSdrThread import BackgroundSdrThread, BackgroundCheckProcessThread
 from sdr.RtlSDR import RtlSDR
 from gui.gui import Gui
-from tools.DemodulationType import DemodulationType
-from tools.Signal import Signal
-from tools.SignalLibrary import SignalLibrary
+# from tools.DemodulationType import DemodulationType
+# from tools.Signal import Signal
+# from tools.SignalLibrary import SignalLibrary
+from signal_libraries import signal_libraries
 from tools.SignalManager import SignalManager
 
 logging.getLogger(RtlSDR.__name__).setLevel(logging.WARNING)
 logging.getLogger(BackgroundCheckProcessThread.__name__).setLevel(logging.WARNING)
 
-libA = SignalLibrary()
-libA.signals = {
-	"CategoryA": [
-		Signal("SignalA", 137.9e6, 100e3, demodulation=DemodulationType.OFF),
-		Signal("SignalB", 137.1e6, 100e3),
-	],
-	"CategoryAA": [
-		Signal("SignalA", 1145.9e6, 100e3, demodulation=DemodulationType.FM),
-		Signal("SignalB", 1148.8e6, 25e3),
-	],
-	"CategoryB": [
-		Signal("SignalC", 145.9e6, 100e3, demodulation=DemodulationType.FM),
-		Signal("SignalD", 148.8e6, 25e3),
-	]
-}
 
-signal_libraries = [libA]
 signals_manager = SignalManager()
 
 config = Config(signals_manager)
