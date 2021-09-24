@@ -34,6 +34,25 @@ class ControllerSettings(BaseController):
 		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_normal, "ui.color.signal_normal", "ui.color.signal_normal_faded")
 		self.add_colorpickers_to_hl(self.ui.horizontalLayout_settings_color_signal_checking, "ui.color.checking_signal", "ui.color.checking_signal_faded")
 
+		self.ui.checkBox_rf_settings_processing_de_emphasis.setChecked(self.config.get("radio.processing.enable_de_emphasis", False))
+		self.ui.checkBox_rf_settings_processing_de_emphasis.stateChanged.connect(lambda: self.config.set("radio.processing.enable_de_emphasis", self.ui.checkBox_rf_settings_processing_de_emphasis.isChecked()))
+
+		self.ui.spinBox_rf_settings_processing_min_filter_bandwidth.setValue(int(self.config.get("radio.processing.minimum_filter_bw", 100000.0)))
+		self.ui.spinBox_rf_settings_processing_min_filter_bandwidth.valueChanged.connect(lambda: self.config.set("radio.processing.minimum_filter_bw", self.ui.spinBox_rf_settings_processing_min_filter_bandwidth.value()))
+
+		self.ui.spinBox_rf_settings_sdr_sample_per_measurment.setValue(int(self.config.get("radio.sdr.samples_per_measurement", 512*1024)))
+		self.ui.spinBox_rf_settings_sdr_sample_per_measurment.valueChanged.connect(lambda: self.config.set("radio.sdr.samples_per_measurement", self.ui.spinBox_rf_settings_sdr_sample_per_measurment.value()))
+
+		self.ui.spinBox_rf_settings_sdr_capture_offset.setValue(int(self.config.get("radio.sdr.capture_offset", 250000.0)))
+		self.ui.spinBox_rf_settings_sdr_capture_offset.valueChanged.connect(lambda: self.config.set("radio.sdr.capture_offset", self.ui.spinBox_rf_settings_sdr_capture_offset.value()))
+
+		self.ui.spinBox_rf_settings_sdr_sample_rate.setValue(int(self.config.get("radio.sdr.sample_rate", 2400000.0)))
+		self.ui.spinBox_rf_settings_sdr_sample_rate.valueChanged.connect(lambda: self.config.set("radio.sdr.sample_rate", self.ui.spinBox_rf_settings_sdr_sample_rate.value()))
+
+		self.ui.doubleSpinBox_rf_settings_sdr_settle_time.setValue(self.config.get("radio.sdr.settle_time", 0.01))
+		self.ui.doubleSpinBox_rf_settings_sdr_settle_time.valueChanged.connect(lambda: self.config.set("radio.sdr.settle_time", self.ui.doubleSpinBox_rf_settings_sdr_settle_time.value()))
+
+
 	def add_colorpickers_to_hl(self,layout, settingA, settingB):
 		colorPicker_A = QColorPicker(QColor(*self.config.get(settingA, (255, 255, 255))))
 		colorPicker_B = QColorPicker(QColor(*self.config.get(settingB, (255, 255, 255))))
